@@ -1,6 +1,6 @@
 """
 See:
-https://github.com/amirasaran/djang-restfull-admin
+https://github.com/amirasaran/djang-restful-admin
 """
 
 # Always prefer setuptools over distutils
@@ -16,11 +16,11 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='django-restfull-admin',
+    name='django-restful-admin',
     version='1.0.0',
-    description='Python Django RestFull Admin',
+    description='Python Django RestFul Admin',
     long_description=long_description,
-    url='https://github.com/amirasaran/djang-restfull-admin',
+    url='https://github.com/amirasaran/djang-restful-admin',
     author='Amir Mohsen Asaran',
     author_email='admin@mihanmail.com',
     license='MIT',
@@ -47,7 +47,11 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    packages=['django_restfull_admin'],
+    packages=['django_restful_admin'],
     # What does your project relate to?
-    keywords='dajngo restfull admin',
+    keywords='dajngo restful admin',
+    install_requires=[
+        'django',
+        'djangorestframework'
+    ]
 )

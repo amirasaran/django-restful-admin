@@ -17,7 +17,7 @@ class ImproperlyConfigured(Exception):
     pass
 
 
-class RestFullModelAdmin(viewsets.ModelViewSet):
+class RestFulModelAdmin(viewsets.ModelViewSet):
     queryset = None
 
     def list(self, request, *args, **kwargs):
@@ -53,13 +53,13 @@ class BaseModelSerializer(ModelSerializer):
         pass
 
 
-class RestFullAdminSite:
+class RestFulAdminSite:
     def __init__(self):
         self._registry = {}
 
     def register(self, model_or_iterable, view_class=None, **options):
         if not view_class:
-            view_class = RestFullModelAdmin
+            view_class = RestFulModelAdmin
 
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
@@ -152,7 +152,7 @@ class RestFullAdminSite:
 
     @property
     def urls(self):
-        return self.get_urls(), 'django_restfull_admin', 'django_restfull_admin'
+        return self.get_urls(), 'django_restful_admin', 'django_restful_admin'
 
 
-site = RestFullAdminSite()
+site = RestFulAdminSite()
