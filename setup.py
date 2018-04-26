@@ -17,7 +17,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='django-restful-admin',
-    version='1.0.1',
+    version='1.0.2',
     description='Python Django RestFul Admin',
     long_description=long_description,
     url='https://github.com/amirasaran/djang-restful-admin',
@@ -51,7 +51,7 @@ setup(
     # What does your project relate to?
     keywords='dajngo restful admin',
     install_requires=[
-        'django',
-        'djangorestframework'
+        'django>==2.0.0',
+        'djangorestframework>==3.0.0'
     ]
 )
