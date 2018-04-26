@@ -1,49 +1,64 @@
+Expose Django's admin as a RESTFUL service
+==========================================
 
-# Expose Django's admin as a RESTFUL service
+-  Support all of restful api
+-  Auto generat serializers
+-  Use `Django Rest Framework <http://www.django-rest-framework.org/>`__
+-  Fully customization support
 
-- Support all of restful api
-- Auto generat serializers
-- Use [Django Rest Framework](http://www.django-rest-framework.org/)
-- Fully customization support
+How To Install
+--------------
 
-## How To Install
+::
 
-	pip install django-restful-admin
+    pip install django-restful-admin
 
-add to `INSTALED_APPS`
+add to ``INSTALED_APPS``
 
-	INSTALLED_APPS = [  
-	  ...
-	  'rest_framework',  
-	  'django_restful_admin',  
-	  ...
-	]
+::
 
-## How To use
-you need only add the bellow code to  `admin.py`  in your apps
+    INSTALLED_APPS = [  
+      ...
+      'rest_framework',  
+      'django_restful_admin',  
+      ...
+    ]
 
-	from django_restful_admin import site
-	from yourapp.models improt FisrtModel, ScoundModel
-	
-	site.register(FisrtModel)  
-	site.register(ScoundModel)  
+How To use
+----------
 
-add url to your project `urls.py`
+you need only add the bellow code to ``admin.py`` in your apps
 
-	from django_restful_admin import site
-	
-	urlpatterns = [  
-		  ... 
-		  path('apiadmin/', site.urls),
-		  ...  
-		]
+::
 
-Run project and open url `http://your-ip:port/apiadmin/`
+    from django_restful_admin import site
+    from yourapp.models improt FisrtModel, ScoundModel
+
+    site.register(FisrtModel)  
+    site.register(ScoundModel)  
+
+add url to your project ``urls.py``
+
+::
+
+    from django_restful_admin import site
+
+    urlpatterns = [  
+          ... 
+          path('apiadmin/', site.urls),
+          ...  
+        ]
+
+Run project and open url ``http://your-ip:port/apiadmin/``
 
 enjoy!
 
-# Customization 
+Customization
+=============
+
 add more documentation about customization very soon ....
 
-# Contribute
+Contribute
+==========
+
 if you think you can help me please let's start.
