@@ -34,7 +34,7 @@ add url to your project `urls.py`
 	
 	urlpatterns = [  
 		  ... 
-		  path('apiadmin/', admin.site.urls),
+		  path('apiadmin/', site.urls),
 		  ...  
 		]
 
