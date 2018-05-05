@@ -65,6 +65,7 @@ class BaseModelSerializer(ModelSerializer):
 class RestFulAdminSite:
     def __init__(self):
         self._registry = {}
+        self._url_patterns = []
 
     def register(self, model_or_iterable, view_class=None, **options):
         if not view_class:
@@ -87,6 +88,9 @@ class RestFulAdminSite:
             # self.set_docs(view_class, model)
             # Instantiate the admin class to save in the registry
             self._registry[model] = view_class
+
+    def register_url_pattern(self, url_pattern):
+        self._url_patterns.append(url_pattern)
 
     @classmethod
     def generate_docs(cls, model):
@@ -152,7 +156,7 @@ class RestFulAdminSite:
             view_sets.append(view_set)
             router.register('%s/%s' % (model._meta.app_label, model._meta.model_name), view_set)
 
-        return router.urls
+        return router.urls + self._url_patterns
 
     @property
     def urls(self):
