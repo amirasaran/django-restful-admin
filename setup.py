@@ -20,7 +20,7 @@ setup(
     version='1.0.3',
     description='Python Django RestFul Admin',
     long_description=long_description,
-    url='https://github.com/amirasaran/djang-restful-admin',
+    url='https://github.com/amirasaran/django-restful-admin',
     author='Amir Mohsen Asaran',
     author_email='admin@mihanmail.com',
     license='MIT',
