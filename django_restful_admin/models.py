@@ -63,13 +63,14 @@ class BaseModelSerializer(ModelSerializer):
 
 
 class RestFulAdminSite:
-    def __init__(self):
+    def __init__(self, view_class=RestFulModelAdmin):
         self._registry = {}
         self._url_patterns = []
+        self.default_view_class = view_class
 
     def register(self, model_or_iterable, view_class=None, **options):
         if not view_class:
-            view_class = RestFulModelAdmin
+            view_class = self.default_view_class
 
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
