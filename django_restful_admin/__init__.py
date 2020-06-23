@@ -1,2 +1,2 @@
-from .models import site, RestFulModelAdmin
+from .models import site, RestFulModelAdmin, RestFulAdminSite
 
