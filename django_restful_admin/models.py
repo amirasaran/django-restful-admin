@@ -139,6 +139,12 @@ class RestFulAdminSite:
         """
         return model in self._registry
 
+    def get_model_basename(self, model):
+        return None
+
+    def get_model_url(self, model):
+        return '%s/%s' % (model._meta.app_label, model._meta.model_name)
+
     def get_urls(self):
         router = DefaultRouter()
         view_sets = []
@@ -155,7 +161,7 @@ class RestFulAdminSite:
                 view_set.serializer_class = serializer_class
 
             view_sets.append(view_set)
-            router.register('%s/%s' % (model._meta.app_label, model._meta.model_name), view_set)
+            router.register(self.get_model_url(model), view_set, self.get_model_basename(model))
 
         return router.urls + self._url_patterns
 
