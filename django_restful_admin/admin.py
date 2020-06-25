@@ -1,8 +1,13 @@
+from django.contrib.auth import get_permission_codename
 from django.db.models.base import ModelBase
-from rest_framework import viewsets
+from django.utils.functional import cached_property
+from rest_framework import viewsets, status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 from rest_framework.serializers import ModelSerializer
+from rest_framework.decorators import action as base_action
 
 
 class AlreadyRegistered(Exception):
@@ -17,12 +22,108 @@ class ImproperlyConfigured(Exception):
     pass
 
 
-class RestFulModelAdmin(viewsets.ModelViewSet):
+class AuthPermissionViewSetMixin:
+    NOT_FOUND_PERMISSION_DEFAULT = False
+    permission_map = dict()
+
+    def get_permission_map(self):
+        permission_map = {
+            'list': self._make_permission_key('view'),
+            'retrieve': self._make_permission_key('view'),
+            'create': self._make_permission_key('add'),
+            'update': self._make_permission_key('update'),
+            'delete': self._make_permission_key('delete'),
+        }
+        permission_map.update(self.permission_map)
+        return permission_map
+
+    @cached_property
+    def _options(self):
+        return self.get_queryset().model._meta
+
+    def _make_permission_key(self, action):
+        code_name = get_permission_codename(action, self._options)
+        return "{0}.{1}".format(self._options.app_label, code_name)
+
+    def _has_perm_action(self, action, request, obj=None):
+        if not action:
+            return False
+
+        perm_map = self.get_permission_map()
+        if hasattr(getattr(self, action), 'permission'):
+            perm_map.update(**{action: getattr(self, action).permission})
+
+        if action not in perm_map:
+            return self.NOT_FOUND_PERMISSION_DEFAULT
+
+        perm_code = perm_map[action]
+        print(perm_code)
+        if callable(perm_code):
+            return perm_code(self, action, request, obj)
+        if isinstance(perm_code, bool):
+            return perm_code
+
+        return request.user.has_perm(
+            perm_code
+        )
+
+
+class IsStaffAccess(BasePermission):
+    """
+    Allows access only to authenticated Trainee users.
+    """
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.is_staff)
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Return `True` if permission is granted, `False` otherwise.
+        """
+        return self.has_permission(request, view)
+
+
+class HasPermissionAccess(BasePermission):
+    """
+    Allows access only to authenticated Trainee users.
+    """
+
+    def has_permission(self, request, view):
+        assert hasattr(view, 'get_permission_map'), """
+        Must be inherit from RestFulModelAdmin to use this permission
+        """
+        return view._has_perm_action(view.action, request)
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Return `True` if permission is granted, `False` otherwise.
+        """
+        return view._has_perm_action(view.action, request, obj)
+
+
+class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = None
+    single_serializer_class = None
+    permission_classes = (IsStaffAccess, HasPermissionAccess)
 
     @staticmethod
     def get_doc():
         return 'asd'
+
+    def get_urls(self):
+        return []
+
+    def get_single_serializer_class(self):
+        return self.single_serializer_class if self.single_serializer_class else self.get_serializer_class()
+
+    def get_single_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        serializer_class = self.get_single_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         """list all of objects"""
@@ -38,15 +139,32 @@ class RestFulModelAdmin(viewsets.ModelViewSet):
 
     def create(self, request, **kwargs):
         """Create new object"""
-        return super().create(request, **kwargs)
+        serializer = self.get_single_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def retrieve(self, request, pk=None, **kwargs):
         """Get object Details"""
-        return super().retrieve(request, pk=pk, **kwargs)
+        instance = self.get_object()
+        serializer = self.get_single_serializer(instance)
+        return Response(serializer.data)
 
     def update(self, request, pk=None, **kwargs):
         """Update object"""
-        return super().update(request, pk=pk, **kwargs)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_single_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
     def partial_update(self, request, pk=None, **kwargs):
         """Partial Update"""
@@ -54,7 +172,9 @@ class RestFulModelAdmin(viewsets.ModelViewSet):
 
     def destroy(self, request, pk=None, **kwargs):
         """Delete object"""
-        return super().destroy(request, pk=pk, **kwargs)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class BaseModelSerializer(ModelSerializer):
@@ -67,6 +187,13 @@ class RestFulAdminSite:
         self._registry = {}
         self._url_patterns = []
         self.default_view_class = view_class
+
+    def register_decorator(self, *model_or_iterable, **options):
+        def wrapper(view_class):
+            self.register(model_or_iterable, view_class, **options)
+            return view_class
+
+        return wrapper
 
     def register(self, model_or_iterable, view_class=None, **options):
         if not view_class:
@@ -171,3 +298,16 @@ class RestFulAdminSite:
 
 
 site = RestFulAdminSite()
+
+
+def register(*model_or_iterable, **options):
+    return site.register_decorator(*model_or_iterable, **options)
+
+
+def action(permission=None, methods=None, detail=None, url_path=None, url_name=None, **kwargs):
+    def decorator(func):
+        base_func = base_action(methods, detail, url_path, url_name, **kwargs)(func)
+        base_func.permission = permission
+        return base_func
+
+    return decorator

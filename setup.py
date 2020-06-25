@@ -12,14 +12,15 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name='django-restful-admin',
-    version='1.0.3',
+    version='1.1.0',
     description='Python Django RestFul Admin',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     url='https://github.com/amirasaran/django-restful-admin',
     author='Amir Mohsen Asaran',
     author_email='admin@mihanmail.com',
@@ -29,7 +30,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -49,7 +50,7 @@ setup(
     ],
     packages=['django_restful_admin'],
     # What does your project relate to?
-    keywords='dajngo restful admin',
+    keywords='django restful admin',
     install_requires=[
         'django>=2.0.0',
         'djangorestframework>=3.0.0'
