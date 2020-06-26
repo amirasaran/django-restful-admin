@@ -31,7 +31,7 @@ class AuthPermissionViewSetMixin:
             'list': self._make_permission_key('view'),
             'retrieve': self._make_permission_key('view'),
             'create': self._make_permission_key('add'),
-            'update': self._make_permission_key('update'),
+            'update': self._make_permission_key('change'),
             'delete': self._make_permission_key('delete'),
         }
         permission_map.update(self.permission_map)
@@ -57,7 +57,6 @@ class AuthPermissionViewSetMixin:
             return self.NOT_FOUND_PERMISSION_DEFAULT
 
         perm_code = perm_map[action]
-        print(perm_code)
         if callable(perm_code):
             return perm_code(self, action, request, obj)
         if isinstance(perm_code, bool):
