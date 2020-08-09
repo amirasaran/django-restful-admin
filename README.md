@@ -8,7 +8,7 @@
  - [x] Use [Django Rest Framework](http://www.django-rest-framework.org/)  
  - [x] Fully customization support  
  - [x] Useing Django Rest Framework ViewSet as AdminModels
- - [x] Support default Django admin auth permission
+ - [x] Support default Django auth permission
  - [x] Support Django custom model permissin with simple configuration
  - [x] Useing Django Rest Framework Serializer(or ModelSerializer) as request validators
  - [x] Support Single Serializer calss to customize your detail view
