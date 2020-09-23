@@ -16,6 +16,7 @@
  - [x] Pagination and ability to change paginator
  - [x] Support custom action with permission
  - [x] Support all features in DRF
+ - [x] Support LogEntry (Log history of objects)
 
 ## Todo
  - [ ] Add some documentation
@@ -26,7 +27,7 @@
  - [ ] Add Fields
  - [ ] Example inline
  - [ ] Localization
- - [ ] Somthings thats need in future 
+ - [ ] Somethings that's need in future 
 
   
 ## How To Install  
