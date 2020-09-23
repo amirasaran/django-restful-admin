@@ -7,14 +7,14 @@
  - [x]  Auto generat serializers  
  - [x] Use [Django Rest Framework](http://www.django-rest-framework.org/)  
  - [x] Fully customization support  
- - [x] Useing Django Rest Framework ViewSet as AdminModels
+ - [x] Using Django Rest Framework ViewSet as AdminModels
  - [x] Support default Django auth permission
- - [x] Support Django custom model permissin with simple configuration
- - [x] Useing Django Rest Framework Serializer(or ModelSerializer) as request validators
- - [x] Support Single Serializer calss to customize your detail view
+ - [x] Support Django custom model permission with simple configuration
+ - [x] Using Django Rest Framework Serializer(or ModelSerializer) as request validators
+ - [x] Support Single Serializer class to customize your detail view
  - [x] Auto generate documentation for CURDs
- - [x] Pagination and abillity to change paginator
- - [x] Support custom action with premission
+ - [x] Pagination and ability to change paginator
+ - [x] Support custom action with permission
  - [x] Support all features in DRF
 
 ## Todo
@@ -199,4 +199,4 @@ class MyCustomApiAdmin(BaseRestFulModelAdmin):
 If you want to except permission you just send permission=True, for creating custom permission you can pass **closure function** or **lambda** to permission like this `permission=lambda: view, action, request, obj=None: True`
   
 # Contribute  
-if you think you can help me please let's start.
+If you think you can help me please let's start.
