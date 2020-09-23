@@ -1,8 +1,9 @@
+from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.auth import get_permission_codename
 from django.db.models.base import ModelBase
+from django.forms import model_to_dict
 from django.utils.functional import cached_property
 from rest_framework import viewsets, status
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
@@ -100,6 +101,46 @@ class HasPermissionAccess(BasePermission):
         return view._has_perm_action(view.action, request, obj)
 
 
+class ModelDiffHelper(object):
+    def __init__(self, initial):
+        self.__initial = self._dict(initial)
+        self._new_object = None
+
+    def set_changed_model(self, new_object):
+        data = self._dict(new_object)
+        if self._new_object is not None:
+            self.__initial = data
+        self._new_object = data
+        return self
+
+    @property
+    def diff(self):
+        if not self._new_object:
+            return {}
+        d1 = self.__initial
+        d2 = self._new_object
+        diffs = [(k, (v, d2[k])) for k, v in d1.items() if v != d2[k]]
+        return dict(diffs)
+
+    @property
+    def has_changed(self):
+        return bool(self.diff)
+
+    @property
+    def changed_fields(self):
+        return list(self.diff.keys())
+
+    def get_field_diff(self, field_name):
+        """
+        Returns a diff for field if it's changed and None otherwise.
+        """
+        return self.diff.get(field_name, None)
+
+    def _dict(self, model):
+        return model_to_dict(model, fields=[field.name for field in
+                                           model._meta.fields])
+
+
 class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = None
     single_serializer_class = None
@@ -111,6 +152,66 @@ class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def get_urls(self):
         return []
+
+    def get_permission_map(self):
+        permission_map = {
+            'list': self._make_permission_key('view'),
+            'retrieve': self._make_permission_key('view'),
+            'create': self._make_permission_key('add'),
+            'update': self._make_permission_key('change'),
+            'partial_update': self._make_permission_key('change'),
+            'delete': self._make_permission_key('delete'),
+        }
+        permission_map.update(self.permission_map)
+        return permission_map
+
+    def log_addition(self, request, object, message):
+        """
+        Log that an object has been successfully added.
+
+        The default implementation creates an admin LogEntry object.
+        """
+        from django.contrib.admin.models import LogEntry, ADDITION
+        return LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=get_content_type_for_model(object).pk,
+            object_id=object.pk,
+            object_repr=str(object),
+            action_flag=ADDITION,
+            change_message=message,
+        )
+
+    def log_change(self, request, object, message):
+        """
+        Log that an object has been successfully changed.
+
+        The default implementation creates an admin LogEntry object.
+        """
+        from django.contrib.admin.models import LogEntry, CHANGE
+        return LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=get_content_type_for_model(object).pk,
+            object_id=object.pk,
+            object_repr=str(object),
+            action_flag=CHANGE,
+            change_message=message,
+        )
+
+    def log_deletion(self, request, object, object_repr):
+        """
+        Log that an object will be deleted. Note that this method must be
+        called before the deletion.
+
+        The default implementation creates an admin LogEntry object.
+        """
+        from django.contrib.admin.models import LogEntry, DELETION
+        return LogEntry.objects.log_action(
+            user_id=request.user.pk,
+            content_type_id=get_content_type_for_model(object).pk,
+            object_id=object.pk,
+            object_repr=object_repr,
+            action_flag=DELETION,
+        )
 
     def get_single_serializer_class(self):
         return self.single_serializer_class if self.single_serializer_class else self.get_serializer_class()
@@ -141,6 +242,10 @@ class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
         serializer = self.get_single_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        self.log_addition(request, serializer.instance, [{'added': {
+            'name': str(serializer.instance._meta.verbose_name),
+            'object': str(serializer.instance),
+        }}])
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -156,7 +261,18 @@ class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_single_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+        helper = ModelDiffHelper(instance)
         self.perform_update(serializer)
+
+        self.log_change(
+            request,
+            serializer.instance,
+            [{'changed': {
+                'name': str(serializer.instance._meta.verbose_name),
+                'object': str(serializer.instance),
+                'fields': helper.set_changed_model(serializer.instance).changed_fields
+            }}]
+        )
 
         if getattr(instance, '_prefetched_objects_cache', None):
             # If 'prefetch_related' has been applied to a queryset, we need to
@@ -172,6 +288,12 @@ class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
     def destroy(self, request, pk=None, **kwargs):
         """Delete object"""
         instance = self.get_object()
+        self.log_deletion(request, instance, [{
+            'deleted': {
+                'name': str(instance._meta.verbose_name),
+                'object': str(instance),
+            }
+        }])
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

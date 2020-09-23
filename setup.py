@@ -17,7 +17,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='django-restful-admin',
-    version='1.1.1',
+    version='1.1.2',
     description='Python Django RestFul Admin',
     long_description=long_description,
     long_description_content_type="text/markdown",
