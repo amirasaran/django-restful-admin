@@ -433,3 +433,10 @@ def action(permission=None, methods=None, detail=None, url_path=None, url_name=N
         return base_func
 
     return decorator
+
+
+# set package level vars for usability
+import django_restful_admin
+django_restful_admin.site = site
+django_restful_admin.RestFulAdminSite = RestFulAdminSite
+django_restful_admin.RestFulModelAdmin = RestFulModelAdmin
