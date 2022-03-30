@@ -1,7 +1,6 @@
+This is a fork of [django-restful-admin](https://github.com/amirasaran/django-restful-admin), all credits to [@amirasaran](https://github.com/amirasaran/).
 
-  
-# Expose Django's admin as a RESTFUL service  
-  
+# Expose Django's admin as a RESTFUL service
  
  - [x] Support all of restful api  
  - [x]  Auto generat serializers  

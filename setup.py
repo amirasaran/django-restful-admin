@@ -1,8 +1,3 @@
-"""
-See:
-https://github.com/amirasaran/djang-restful-admin
-"""
-
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
