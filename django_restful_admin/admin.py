@@ -34,7 +34,7 @@ class AuthPermissionViewSetMixin:
             'create': self._make_permission_key('add'),
             'update': self._make_permission_key('change'),
             'partial_update': self._make_permission_key('change'),
-            'delete': self._make_permission_key('delete'),
+            'destroy': self._make_permission_key('delete'),
         }
         permission_map.update(self.permission_map)
         return permission_map
@@ -161,7 +161,7 @@ class RestFulModelAdmin(AuthPermissionViewSetMixin, viewsets.ModelViewSet):
             'create': self._make_permission_key('add'),
             'update': self._make_permission_key('change'),
             'partial_update': self._make_permission_key('change'),
-            'delete': self._make_permission_key('delete'),
+            'destroy': self._make_permission_key('delete'),
         }
         permission_map.update(self.permission_map)
         return permission_map
